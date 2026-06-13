@@ -54,7 +54,7 @@ export async function handleCallback(code: string): Promise<string> {
     /* non-fatal — we still have tokens */
   }
 
-  await saveSession({ email, tokens } satisfies GoogleSession);
+  await saveSession("google", { email, tokens } satisfies GoogleSession);
   return email;
 }
 
@@ -64,7 +64,7 @@ export async function handleCallback(code: string): Promise<string> {
  */
 export async function getAuthedClient(): Promise<Auth.OAuth2Client | null> {
   if (!isGoogleConfigured() || !hasEncryptionKey()) return null;
-  const session = await loadSession<GoogleSession>();
+  const session = await loadSession<GoogleSession>("google");
   if (!session?.tokens) return null;
 
   const client = getOAuthClient();
@@ -72,7 +72,7 @@ export async function getAuthedClient(): Promise<Auth.OAuth2Client | null> {
   client.on("tokens", (fresh) => {
     // Merge + re-persist refreshed credentials (refresh_token may be omitted).
     const merged = { ...session.tokens, ...fresh };
-    void saveSession({ email: session.email, tokens: merged } satisfies GoogleSession);
+    void saveSession("google", { email: session.email, tokens: merged } satisfies GoogleSession);
   });
   return client;
 }
@@ -86,7 +86,7 @@ export async function getConnection(): Promise<{
 }> {
   const configured = isGoogleConfigured();
   const hasKey = hasEncryptionKey();
-  const session = configured && hasKey ? await loadSession<GoogleSession>() : null;
+  const session = configured && hasKey ? await loadSession<GoogleSession>("google") : null;
   return {
     configured,
     hasKey,
@@ -103,5 +103,5 @@ export async function disconnectGoogle(): Promise<void> {
   } catch {
     /* best effort */
   }
-  await clearSession();
+  await clearSession("google");
 }

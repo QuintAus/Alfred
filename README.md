@@ -6,13 +6,13 @@ commands, and uses **Claude (the Anthropic API) as its brain** — Claude
 interprets what you say, decides which of your connected apps to pull data from,
 responds in natural language, and drives what the dashboard displays.
 
-> **Status: Phase 4 complete** — JARVIS now has a **voice**: speak commands
-> (push-to-talk or the "Hey JARVIS" wake word), hear spoken replies, and watch the
-> visualizer ring react to your live microphone. Built on Phases 1–3 (the animated
-> HUD, the Claude brain, and real Google data).
+> **Status: Phase 5 complete** — the finale. Real **weather** (keyless, via
+> Open-Meteo), **web search**, and **Spotify** ("play my focus playlist" + live
+> Now-Playing) join the Google integration, plus an **ElevenLabs voice hook**.
+> Phases 1–4 gave us the animated HUD, the Claude brain, Google data, and voice.
 >
-> Degrades gracefully at every layer: no Anthropic key → **demo mode**; no Google
-> → **mock data**; no mic/voice support → the **text command bar** still works.
+> Degrades gracefully at every layer: no key → **demo mode** (which still runs the
+> real tools); nothing connected → **mock data**; no mic → the **text bar** works.
 
 ---
 
@@ -124,6 +124,22 @@ STT/TTS use the browser-native Web Speech API (best in Chrome); the app prefers 
 
 ---
 
+## Connect Spotify (Phase 5)
+
+1. Create an app at the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
+2. Add the redirect URI `http://localhost:3000/api/auth/spotify/callback`.
+3. Put the **Client ID** / **Secret** in `.env.local` (`SPOTIFY_CLIENT_ID`,
+   `SPOTIFY_CLIENT_SECRET`), restart, then click **SPOTIFY** in the status bar.
+4. Say or type *"play my focus playlist"* / *"pause"* — playback control needs
+   Spotify open on a device (phone, desktop, or web player). Now-Playing fills the widget.
+
+> **Weather** is real with **zero setup** (Open-Meteo, no key). **Web search** uses
+> a keyless fallback; set `BRAVE_SEARCH_API_KEY` for full results. A cinematic
+> **ElevenLabs** voice is one switch away (`NEXT_PUBLIC_USE_ELEVENLABS=true` +
+> `ELEVENLABS_API_KEY`) — see `.env.example`.
+
+---
+
 ## How it works
 
 ```
@@ -167,9 +183,10 @@ src/
    ├─ tools/index.ts                 # ★ tool defs + handlers (real Google / mock)
    ├─ server/
    │  ├─ anthropic.ts                # Claude client + model id
-   │  ├─ google.ts                   # OAuth client + session management
-   │  ├─ google-data.ts              # Google API → widget shapes
-   │  └─ token-store.ts              # AES-256-GCM encrypted token storage
+   │  ├─ google.ts / google-data.ts  # Google OAuth + API → widget shapes
+   │  ├─ spotify.ts                  # Spotify OAuth + playback API
+   │  ├─ weather.ts / web-search.ts  # keyless real data (Open-Meteo, DuckDuckGo/Brave)
+   │  └─ token-store.ts              # AES-256-GCM encrypted tokens (per provider)
    ├─ types.ts · mock-data.ts · utils.ts
 ```
 
@@ -192,8 +209,9 @@ src/
   Calendar/Gmail/Drive/Tasks, calendar event creation, mock fallback.
 - **Phase 4 — Voice (done):** speech-to-text + TTS (Web Speech API), "Hey JARVIS"
   wake word (Porcupine), visualizer hooked to live mic amplitude, push-to-talk.
-- **Phase 5 — Polish & expand:** Spotify, monday.com, real web search/weather;
-  ElevenLabs / Deepgram upgrade hooks.
+- **Phase 5 — Polish & expand (done):** real weather (Open-Meteo) + web search,
+  Spotify (Now-Playing + playback), demo mode runs the real tools, ElevenLabs
+  voice hook. Easy follow-ons left open: a Drive widget + a monday.com tool.
 
 ## Security
 

@@ -64,6 +64,8 @@ export const useVoice = () => useContext(Ctx);
 
 const ACCESS_KEY = process.env.NEXT_PUBLIC_PICOVOICE_ACCESS_KEY;
 const MODEL_PATH = process.env.NEXT_PUBLIC_PORCUPINE_MODEL_PATH ?? "/porcupine_params.pv";
+// Upgrade hook: cinematic ElevenLabs voice via /api/tts when turned on.
+const USE_ELEVENLABS = process.env.NEXT_PUBLIC_USE_ELEVENLABS === "true";
 
 function pickVoice(): SpeechSynthesisVoice | null {
   const voices = window.speechSynthesis.getVoices();
@@ -218,14 +220,8 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
   // --- TTS: speak new assistant replies while enabled ---
   useEffect(() => {
     if (!enabled || !ttsSupported) return;
-    const speakLatest = () => {
-      const { transcript, status } = useJarvis.getState();
-      const assistantTurns = transcript.filter((t) => t.role === "assistant");
-      if (assistantTurns.length <= spokenRef.current) return;
-      spokenRef.current = assistantTurns.length;
-      if (status === "error") return; // don't read out error text
-      const text = assistantTurns[assistantTurns.length - 1].text;
-      if (!text) return;
+
+    const webSpeak = (text: string) => {
       const synth = window.speechSynthesis;
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -233,7 +229,6 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       if (v) u.voice = v;
       u.lang = v?.lang ?? "en-GB";
       u.rate = 1.02;
-      u.pitch = 1;
       u.onstart = () => useJarvis.getState().setStatus("speaking");
       u.onend = () => {
         const s = useJarvis.getState();
@@ -241,6 +236,47 @@ export function VoiceProvider({ children }: { children: React.ReactNode }) {
       };
       synth.speak(u);
     };
+
+    const speak = async (text: string) => {
+      // Prefer ElevenLabs (server /api/tts) when enabled; fall back to the
+      // browser voice on any error so replies are always spoken.
+      if (USE_ELEVENLABS) {
+        try {
+          const res = await fetch("/api/tts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text }),
+          });
+          if (res.ok) {
+            window.speechSynthesis.cancel();
+            const url = URL.createObjectURL(await res.blob());
+            const audio = new Audio(url);
+            audio.onplay = () => useJarvis.getState().setStatus("speaking");
+            audio.onended = () => {
+              URL.revokeObjectURL(url);
+              const s = useJarvis.getState();
+              if (s.status === "speaking") s.setStatus("idle");
+            };
+            await audio.play();
+            return;
+          }
+        } catch {
+          /* fall back to the browser voice */
+        }
+      }
+      webSpeak(text);
+    };
+
+    const speakLatest = () => {
+      const { transcript, status } = useJarvis.getState();
+      const assistantTurns = transcript.filter((t) => t.role === "assistant");
+      if (assistantTurns.length <= spokenRef.current) return;
+      spokenRef.current = assistantTurns.length;
+      if (status === "error") return; // don't read out error text
+      const text = assistantTurns[assistantTurns.length - 1].text;
+      if (text) void speak(text);
+    };
+
     // sync the counter to current length, then subscribe to future changes
     spokenRef.current = useJarvis
       .getState()

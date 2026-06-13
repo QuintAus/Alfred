@@ -1,5 +1,5 @@
 import { CornerBrackets } from "@/components/ui/CornerBrackets";
-import { GoogleConnect } from "./GoogleConnect";
+import { Connections } from "./Connections";
 
 function Telemetry({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
@@ -46,7 +46,7 @@ export function StatusBar() {
             <Telemetry label="UPLINK" value="◈ SECURE" accent="var(--color-success)" />
             <Telemetry label="SYS" value="ONLINE" accent="var(--color-accent)" />
           </div>
-          <GoogleConnect />
+          <Connections />
         </div>
 
         {/* animated sweep line */}

@@ -3,6 +3,9 @@ import { mockDashboard } from "@/lib/mock-data";
 import type { WidgetKey } from "@/lib/types";
 import { getAuthedClient } from "@/lib/server/google";
 import * as g from "@/lib/server/google-data";
+import { getWeather } from "@/lib/server/weather";
+import { webSearch } from "@/lib/server/web-search";
+import { getNowPlaying as spotifyNowPlaying, playMusic, pauseMusic } from "@/lib/server/spotify";
 
 /**
  * ============================================================================
@@ -178,10 +181,13 @@ export const toolSpecs: Record<string, ToolSpec> = {
         properties: { location: { type: "string", description: "City or place." } },
       },
     },
-    // Weather is mock until Phase 5 (a weather provider).
     handler: async (input) => {
-      const location = str(input.location);
-      return location ? { ...mockDashboard.weather, location } : mockDashboard.weather;
+      try {
+        return await getWeather(str(input.location));
+      } catch {
+        const location = str(input.location);
+        return location ? { ...mockDashboard.weather, location } : mockDashboard.weather;
+      }
     },
   },
 
@@ -195,8 +201,41 @@ export const toolSpecs: Record<string, ToolSpec> = {
         "Get the track currently playing. Call this when the user asks what's playing or about music.",
       input_schema: { type: "object", properties: {} },
     },
-    // Now-playing is mock until Phase 5 (Spotify).
-    handler: async () => mockDashboard.nowPlaying,
+    handler: async () => {
+      const np = await spotifyNowPlaying();
+      return np ?? mockDashboard.nowPlaying;
+    },
+  },
+
+  play_music: {
+    label: "Spotify",
+    widget: "nowPlaying",
+    definition: {
+      name: "play_music",
+      description:
+        "Start or resume music on Spotify. Call this when the user asks to play music, a song, an artist, or a playlist. Put what they asked for in `query`; omit it to resume.",
+      input_schema: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "What to play, e.g. 'my focus playlist' or 'AC/DC'.",
+          },
+        },
+      },
+    },
+    handler: async (input) => playMusic(str(input.query)),
+  },
+
+  pause_music: {
+    label: "Spotify",
+    widget: "nowPlaying",
+    definition: {
+      name: "pause_music",
+      description: "Pause Spotify playback. Call this when the user asks to pause or stop the music.",
+      input_schema: { type: "object", properties: {} },
+    },
+    handler: async () => pauseMusic(),
   },
 
   web_search: {
@@ -211,16 +250,7 @@ export const toolSpecs: Record<string, ToolSpec> = {
         required: ["query"],
       },
     },
-    handler: async (input) => ({
-      query: str(input.query) ?? "",
-      results: [
-        {
-          title: `Top result for "${str(input.query) ?? ""}"`,
-          snippet: "Mock search result. A real web-search provider is wired in Phase 5.",
-          source: "example.com",
-        },
-      ],
-    }),
+    handler: async (input) => webSearch(str(input.query) ?? ""),
   },
 
   [UPDATE_DISPLAY]: {

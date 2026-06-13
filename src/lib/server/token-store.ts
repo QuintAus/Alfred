@@ -12,8 +12,9 @@ import path from "node:path";
  */
 
 const DATA_DIR = path.join(process.cwd(), ".data");
-const TOKEN_FILE = path.join(DATA_DIR, "google-token.enc");
 const ALGO = "aes-256-gcm";
+
+const tokenFile = (provider: string) => path.join(DATA_DIR, `${provider}-token.enc`);
 
 export function hasEncryptionKey(): boolean {
   return Boolean(process.env.TOKEN_ENCRYPTION_KEY);
@@ -44,23 +45,23 @@ function decrypt(payload: string): string {
   ]).toString("utf8");
 }
 
-/** Persist an arbitrary JSON-serialisable session object (encrypted). */
-export async function saveSession(session: unknown): Promise<void> {
+/** Persist a JSON-serialisable session object (encrypted), keyed by provider. */
+export async function saveSession(provider: string, session: unknown): Promise<void> {
   await mkdir(DATA_DIR, { recursive: true });
-  await writeFile(TOKEN_FILE, encrypt(JSON.stringify(session)), "utf8");
+  await writeFile(tokenFile(provider), encrypt(JSON.stringify(session)), "utf8");
 }
 
-/** Load the stored session, or null if none / unreadable. */
-export async function loadSession<T = unknown>(): Promise<T | null> {
+/** Load the stored session for a provider, or null if none / unreadable. */
+export async function loadSession<T = unknown>(provider: string): Promise<T | null> {
   try {
-    const raw = await readFile(TOKEN_FILE, "utf8");
+    const raw = await readFile(tokenFile(provider), "utf8");
     return JSON.parse(decrypt(raw)) as T;
   } catch {
     return null;
   }
 }
 
-/** Remove the stored session. */
-export async function clearSession(): Promise<void> {
-  await rm(TOKEN_FILE, { force: true });
+/** Remove the stored session for a provider. */
+export async function clearSession(provider: string): Promise<void> {
+  await rm(tokenFile(provider), { force: true });
 }

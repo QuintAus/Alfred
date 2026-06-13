@@ -7,8 +7,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # JARVIS dashboard — project notes
 
 A JARVIS-style HUD that uses Claude (Anthropic API) as the brain. Built in
-phases (see README "Roadmap"). **Phases 1–4 are done (HUD, Claude brain, Google,
-voice).**
+phases (see README "Roadmap"). **Phases 1–5 are done (HUD, Claude brain, Google,
+voice, Spotify/weather/search).**
 
 Key conventions:
 
@@ -36,6 +36,15 @@ Key conventions:
   `porcupine_params.pv` in `public/`); push-to-talk + text always work. Picovoice
   modules are dynamically imported (browser/WASM only) and typed `any` to keep the
   build green. All browser APIs live in effects/handlers (SSR-safe).
+- **Integrations (Phase 5):** `lib/server/weather.ts` (Open-Meteo, keyless),
+  `web-search.ts` (Brave if `BRAVE_SEARCH_API_KEY`, else keyless DuckDuckGo),
+  `spotify.ts` (OAuth + playback, mirrors google). `token-store` is now
+  per-provider (`saveSession(provider, …)`); `/api/auth/status` returns
+  `{google, spotify}`. Demo mode runs the REAL tool handlers and emits `data`
+  events, so live data shows without an Anthropic key. ElevenLabs hook: `/api/tts`
+  + `NEXT_PUBLIC_USE_ELEVENLABS`. External APIs (open-meteo, duckduckgo, spotify,
+  elevenlabs) are 403-blocked in the web sandbox — verify via build + graceful
+  fallback, not live calls.
 - **Claude usage:** model `claude-opus-4-8`, adaptive thinking, NO
   `temperature`/`budget_tokens`/prefill (they 400). Before touching Anthropic
   code, consult the `claude-api` skill — don't code SDK usage from memory.

@@ -200,52 +200,46 @@ async function runDemo(message: string, send: (e: ServerEvent) => void) {
     widget: WidgetKey;
     label: string;
     reply: string;
-    highlight?: string[];
   }[] = [
     {
       re: /(meet|calendar|schedul|agenda|today|appointment|standup)/,
       tool: "get_calendar_events",
       widget: "calendar",
       label: "Calendar",
-      reply:
-        "You have four engagements today, sir. The first is the Design Team Standup at nine.",
-      highlight: ["evt_1"],
+      reply: "Here's your agenda for today, sir.",
     },
     {
-      re: /(mail|email|inbox|message|wrote|pepper)/,
+      re: /(mail|email|inbox|message|wrote|unread)/,
       tool: "search_emails",
       widget: "inbox",
       label: "Inbox",
-      reply:
-        "Twelve unread, sir. The one worth your attention is from Pepper Potts, regarding the Q3 board deck.",
-      highlight: ["mail_1"],
+      reply: "Here's your inbox, sir.",
     },
     {
       re: /(task|to-?dos?|to do|outstanding|remind|chore|errand|need to)/,
       tool: "get_tasks",
       widget: "tasks",
       label: "Tasks",
-      reply: "Three tasks due today. Top of the list: approve the arc reactor schematics.",
-      highlight: ["task_1"],
+      reply: "Here are your tasks, sir.",
     },
     {
       re: /(weather|temperature|forecast|rain|sun|cold|hot)/,
       tool: "get_weather",
       widget: "weather",
       label: "Weather",
-      reply: "Clear skies in Malibu, twenty-two degrees, sir, with a high of twenty-five.",
+      reply: "Here's the forecast, sir.",
     },
     {
       re: /(play|music|song|track|listening|spotify)/,
       tool: "get_now_playing",
       widget: "nowPlaying",
       label: "Now Playing",
-      reply: "Currently playing Back In Black by AC/DC. An excellent choice, sir.",
+      reply: "Here's what's playing, sir.",
     },
   ];
 
   send({ type: "status", status: "thinking" });
-  await delay(450);
+  await delay(350);
 
   const route = routes.find((r) => r.re.test(m));
   const reply =
@@ -253,11 +247,21 @@ async function runDemo(message: string, send: (e: ServerEvent) => void) {
     "I'm online and standing by, sir. Provide an Anthropic key and I'll have full use of my faculties — for now I run on demonstration data.";
 
   if (route) {
+    const spec = toolSpecs[route.tool];
     send({ type: "tool", name: route.tool, label: route.label, phase: "start" });
     send({ type: "ui", focus: route.widget });
-    await delay(550);
+    // Demo mode runs the REAL handler — so live data (weather, and any connected
+    // Google/Spotify) shows up in the widgets even without an Anthropic key.
+    let data: unknown;
+    try {
+      data = await spec.handler({});
+    } catch {
+      /* keep the canned reply */
+    }
     send({ type: "tool", name: route.tool, label: route.label, phase: "end" });
-    send({ type: "ui", focus: route.widget, highlight: route.highlight });
+    if (data !== undefined && spec.widgetData && spec.widget) {
+      send({ type: "data", widget: spec.widget, payload: data });
+    }
   }
 
   send({ type: "status", status: "speaking" });
