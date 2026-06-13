@@ -127,6 +127,7 @@ export type ServerEvent =
   | { type: "tool"; id?: string; name: string; label: string; phase: "start" | "end" }
   | { type: "text"; delta: string }
   | { type: "ui"; focus?: WidgetKey | null; highlight?: string[] }
+  | { type: "data"; widget: WidgetKey; payload: unknown }
   | { type: "error"; message: string }
   | { type: "done" };
 

@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# encrypted OAuth token store (Phase 3)
+/.data/
+
 # vercel
 .vercel
 

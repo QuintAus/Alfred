@@ -1,4 +1,5 @@
 import { CornerBrackets } from "@/components/ui/CornerBrackets";
+import { GoogleConnect } from "./GoogleConnect";
 
 function Telemetry({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
@@ -37,13 +38,15 @@ export function StatusBar() {
           </div>
         </div>
 
-        {/* telemetry */}
-        <div className="hidden items-center divide-x divide-primary/10 md:flex">
-          <Telemetry label="CORE" value="42.0°C" accent="var(--color-primary)" />
-          <Telemetry label="PWR" value="98%" accent="var(--color-success)" />
-          <Telemetry label="MEM" value="61%" accent="var(--color-primary)" />
-          <Telemetry label="UPLINK" value="◈ SECURE" accent="var(--color-success)" />
-          <Telemetry label="SYS" value="ONLINE" accent="var(--color-accent)" />
+        {/* telemetry + Google connection */}
+        <div className="flex items-center gap-3">
+          <div className="hidden items-center divide-x divide-primary/10 lg:flex">
+            <Telemetry label="CORE" value="42.0°C" accent="var(--color-primary)" />
+            <Telemetry label="PWR" value="98%" accent="var(--color-success)" />
+            <Telemetry label="UPLINK" value="◈ SECURE" accent="var(--color-success)" />
+            <Telemetry label="SYS" value="ONLINE" accent="var(--color-accent)" />
+          </div>
+          <GoogleConnect />
         </div>
 
         {/* animated sweep line */}

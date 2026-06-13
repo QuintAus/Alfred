@@ -70,6 +70,8 @@ interface JarvisState {
   finishCommand: () => void;
   /** Abort the command, surfacing an error message in the transcript. */
   failCommand: (message: string) => void;
+  /** Replace a widget's data with fresh data fetched by a tool (Phase 3). */
+  setWidgetData: (widget: WidgetKey, payload: unknown) => void;
 }
 
 export const useJarvis = create<JarvisState>((set) => ({
@@ -134,4 +136,6 @@ export const useJarvis = create<JarvisState>((set) => ({
       isProcessing: false,
       status: "error",
     })),
+  setWidgetData: (widget, payload) =>
+    set((s) => ({ data: { ...s.data, [widget]: payload } as DashboardData })),
 }));

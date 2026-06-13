@@ -165,6 +165,9 @@ async function runClaude(
 
       try {
         const data = await spec.handler(input);
+        if (spec.widgetData && spec.widget) {
+          send({ type: "data", widget: spec.widget, payload: data });
+        }
         results.push({ type: "tool_result", tool_use_id: tu.id, content: JSON.stringify(data) });
       } catch (err) {
         results.push({

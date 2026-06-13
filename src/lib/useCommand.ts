@@ -56,6 +56,9 @@ export function useCommand() {
         case "ui":
           store.applyDirective({ focus: event.focus ?? undefined, highlight: event.highlight });
           break;
+        case "data":
+          store.setWidgetData(event.widget, event.payload);
+          break;
         case "error":
           fail(event.message);
           break;

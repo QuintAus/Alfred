@@ -7,8 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # JARVIS dashboard — project notes
 
 A JARVIS-style HUD that uses Claude (Anthropic API) as the brain. Built in
-phases (see README "Roadmap"). **Phases 1 (HUD on mock data) and 2 (Claude
-orchestration loop) are done.**
+phases (see README "Roadmap"). **Phases 1, 2, and 3 (Google integration) are done.**
 
 Key conventions:
 
@@ -19,9 +18,17 @@ Key conventions:
   streaming agentic loop and emits Server-Sent Events (`ServerEvent` union in
   `types.ts`). `src/lib/useCommand.ts` consumes the stream into the store.
   Persona = `src/config/persona.ts`. Tools = `src/lib/tools/index.ts` (one
-  `ToolSpec` per capability; handlers return mock data, swap for real APIs in
-  Phase 3). Claude client + model id live in `src/lib/server/anthropic.ts`
-  (server-only). The route runs with no key too (`runDemo` fallback).
+  `ToolSpec` per capability). Claude client + model id live in
+  `src/lib/server/anthropic.ts` (server-only). The route runs with no key too
+  (`runDemo` fallback) and emits `data` events to push fresh widget data.
+- **Google (Phase 3):** OAuth routes in `src/app/api/auth/*`; client/session in
+  `src/lib/server/google.ts`; API→shape adapters in `google-data.ts`; encrypted
+  token store in `token-store.ts`; scopes in `src/config/google.ts` (read-only +
+  calendar event create). Tool handlers use real Google when connected
+  (`getAuthedClient`), else mock. Tokens encrypted under `.data/` (git-ignored).
+  NOTE: `googleapis` pulls two `google-auth-library` versions → an OAuth2Client
+  type clash; resolved via `overrides.google-auth-library` in package.json (keep
+  it). Type the auth client as `Auth.OAuth2Client` from `googleapis`.
 - **Claude usage:** model `claude-opus-4-8`, adaptive thinking, NO
   `temperature`/`budget_tokens`/prefill (they 400). Before touching Anthropic
   code, consult the `claude-api` skill — don't code SDK usage from memory.
@@ -39,4 +46,6 @@ Key conventions:
   component and touch browser APIs only inside effects (SSR-safe).
 - Verify with `npm run build` (type-checks + builds). Test the API loop without a
   key via demo mode: `curl -N -X POST localhost:3000/api/command -d '{"message":"..."}'`.
-  Browser screenshots aren't possible in the web sandbox (Playwright CDN blocked).
+  Browser screenshots: Playwright's CDN is blocked, but Puppeteer works (its
+  Chrome downloads from Google's CDN). Install puppeteer in /tmp, launch with
+  `--no-sandbox`, and screenshot localhost.
