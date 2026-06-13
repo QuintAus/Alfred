@@ -1,0 +1,245 @@
+@import "tailwindcss";
+
+/* ============================================================================
+ * J.A.R.V.I.S. THEME TOKENS  —  edit colours / fonts here.
+ * These map to Tailwind utilities automatically (Tailwind v4 @theme):
+ *   --color-primary   ->  bg-primary / text-primary / border-primary ...
+ *   --font-display    ->  font-display ...
+ * ========================================================================== */
+@theme {
+  /* Surfaces — near-black navy base, lifted panels */
+  --color-base: #020817;
+  --color-panel: #061027;
+  --color-panel-2: #0a1834;
+
+  /* Arc-reactor cyan (primary glow) */
+  --color-primary: #22d3ee;
+  --color-primary-bright: #00d4ff;
+  --color-primary-dim: #155e75;
+
+  /* Accents */
+  --color-accent: #fbbf24; /* amber/gold — alerts */
+  --color-accent-bright: #fcd34d;
+  --color-violet: #a78bfa;
+  --color-success: #34d399;
+  --color-danger: #fb7185;
+
+  /* Text */
+  --color-ink: #d6f1ff; /* crisp white, faint cyan tint */
+  --color-ink-dim: #6f93b4; /* muted labels / metadata */
+
+  /* Fonts (wired to next/font variables in layout.tsx) */
+  --font-display: var(--font-orbitron), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-rajdhani), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+/* ============================================================================
+ * BASE
+ * ========================================================================== */
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-base);
+  color: var(--color-ink);
+  font-family: var(--font-heading);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Radial glow rooted at the centre of the screen, behind everything. */
+.hud-backdrop {
+  background:
+    radial-gradient(
+      circle at 50% 46%,
+      rgba(34, 211, 238, 0.1) 0%,
+      rgba(34, 211, 238, 0.04) 28%,
+      transparent 62%
+    ),
+    radial-gradient(circle at 50% 120%, rgba(34, 211, 238, 0.08), transparent 55%),
+    var(--color-base);
+}
+
+/* Thin cyan scrollbars for any overflowing widget. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 211, 238, 0.35) transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.3);
+  border-radius: 999px;
+}
+
+/* ============================================================================
+ * HUD EFFECT HELPERS
+ * ========================================================================== */
+
+/* Glow text */
+.text-glow {
+  text-shadow:
+    0 0 6px rgba(34, 211, 238, 0.55),
+    0 0 18px rgba(34, 211, 238, 0.3);
+}
+.text-glow-accent {
+  text-shadow:
+    0 0 6px rgba(251, 191, 36, 0.6),
+    0 0 18px rgba(251, 191, 36, 0.35);
+}
+
+/* Glassmorphism tile surface */
+.glass {
+  background:
+    linear-gradient(
+      160deg,
+      rgba(10, 24, 52, 0.72) 0%,
+      rgba(6, 16, 39, 0.66) 100%
+    );
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    inset 0 1px 0 rgba(34, 211, 238, 0.08),
+    inset 0 0 30px rgba(34, 211, 238, 0.04),
+    0 8px 30px rgba(0, 0, 0, 0.4);
+}
+.glass-focus {
+  border-color: rgba(34, 211, 238, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(34, 211, 238, 0.14),
+    inset 0 0 40px rgba(34, 211, 238, 0.08),
+    0 0 24px rgba(34, 211, 238, 0.25),
+    0 8px 30px rgba(0, 0, 0, 0.45);
+}
+
+/* Full-screen scanline overlay */
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(34, 211, 238, 0.04) 0px,
+    rgba(34, 211, 238, 0.04) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: screen;
+  opacity: 0.5;
+}
+
+/* Faint blueprint grid */
+.hud-grid {
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(circle at 50% 50%, black 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 0%, transparent 78%);
+}
+
+/* Vignette to darken edges */
+.vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(2, 8, 23, 0.55) 100%
+  );
+}
+
+/* ============================================================================
+ * KEYFRAMES  (subtle — glow & pulse, never flash)
+ * ========================================================================== */
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes spin-slow-rev {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes reactor-pulse {
+  0%,
+  100% {
+    opacity: 0.85;
+    filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.5));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 26px rgba(34, 211, 238, 0.85));
+  }
+}
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  41% {
+    opacity: 1;
+  }
+  42% {
+    opacity: 0.55;
+  }
+  43% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 0.7;
+  }
+  93% {
+    opacity: 1;
+  }
+}
+@keyframes sweep {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+@keyframes ring-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 18s linear infinite;
+}
+.animate-spin-slow-rev {
+  animation: spin-slow-rev 24s linear infinite;
+}
+.animate-reactor-pulse {
+  animation: reactor-pulse 3.4s ease-in-out infinite;
+}
+.animate-flicker {
+  animation: flicker 4s linear infinite;
+}
+.animate-ring-breathe {
+  animation: ring-breathe 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
