@@ -80,9 +80,6 @@ export function CentralCore() {
           <span className="font-display text-5xl font-bold tracking-[0.12em] text-ink text-glow tabular-nums sm:text-6xl">
             {clock.hms}
           </span>
-          {clock.ampm && (
-            <span className="font-mono text-sm text-primary/70">{clock.ampm}</span>
-          )}
         </div>
         <div className="font-heading text-sm tracking-[0.35em] text-ink-dim">
           {dateLine}

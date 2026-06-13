@@ -218,7 +218,7 @@ async function runDemo(message: string, send: (e: ServerEvent) => void) {
       highlight: ["mail_1"],
     },
     {
-      re: /(task|to-?do|outstanding|remind|chore)/,
+      re: /(task|to-?dos?|to do|outstanding|remind|chore|errand|need to)/,
       tool: "get_tasks",
       widget: "tasks",
       label: "Tasks",
