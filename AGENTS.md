@@ -7,22 +7,36 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # JARVIS dashboard — project notes
 
 A JARVIS-style HUD that uses Claude (Anthropic API) as the brain. Built in
-phases (see README "Roadmap"). **Phase 1 (animated HUD on mock data) is done.**
+phases (see README "Roadmap"). **Phases 1 (HUD on mock data) and 2 (Claude
+orchestration loop) are done.**
 
 Key conventions:
 
 - **Stack:** Next.js 16 App Router + TS, Tailwind v4 (CSS `@theme` in
-  `src/app/globals.css`), Motion (`motion/react`), Zustand, lucide-react.
+  `src/app/globals.css`), Motion (`motion/react`), Zustand, lucide-react,
+  `@anthropic-ai/sdk`.
+- **The brain (Phase 2):** `src/app/api/command/route.ts` runs a manual
+  streaming agentic loop and emits Server-Sent Events (`ServerEvent` union in
+  `types.ts`). `src/lib/useCommand.ts` consumes the stream into the store.
+  Persona = `src/config/persona.ts`. Tools = `src/lib/tools/index.ts` (one
+  `ToolSpec` per capability; handlers return mock data, swap for real APIs in
+  Phase 3). Claude client + model id live in `src/lib/server/anthropic.ts`
+  (server-only). The route runs with no key too (`runDemo` fallback).
+- **Claude usage:** model `claude-opus-4-8`, adaptive thinking, NO
+  `temperature`/`budget_tokens`/prefill (they 400). Before touching Anthropic
+  code, consult the `claude-api` skill — don't code SDK usage from memory.
 - **State** lives in `src/lib/store.ts` (`useJarvis`). `status` + `inputLevel`
   drive the reactor/visualizer; `focusedWidget` + `highlightedIds` are the
-  targets of Claude's UI directives (`UiDirective` in `src/lib/types.ts`).
+  targets of Claude's UI directives; `transcript`/`streamingText`/`activities`
+  hold the conversation.
 - **Data shapes** are in `src/lib/types.ts`; mock data in `src/lib/mock-data.ts`.
   Real tool handlers (Phase 3+) must return these same shapes so widgets are
   source-agnostic.
 - **Theme tokens** (colours/fonts) are all at the top of `globals.css`.
-- **Security:** secrets are server-only; never import API keys into client
-  components. `.env*` is git-ignored.
+- **Security:** secrets are server-only (`src/lib/server/`); never import API
+  keys into client components. `.env*` (except `.env.example`) is git-ignored.
 - Anything using the browser (canvas, `window`, mic) must be a `"use client"`
   component and touch browser APIs only inside effects (SSR-safe).
-- Verify with `npm run build` (type-checks + builds). Browser screenshots aren't
-  possible in the web sandbox (the Playwright browser CDN is network-blocked).
+- Verify with `npm run build` (type-checks + builds). Test the API loop without a
+  key via demo mode: `curl -N -X POST localhost:3000/api/command -d '{"message":"..."}'`.
+  Browser screenshots aren't possible in the web sandbox (Playwright CDN blocked).

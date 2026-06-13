@@ -115,3 +115,30 @@ export interface AssistantResponse {
   speech: string;
   ui?: UiDirective;
 }
+
+/**
+ * Streaming protocol (Phase 2). The /api/command route streams these as
+ * Server-Sent Events; the client (`useCommand`) parses them and drives the
+ * store. Keeping the union here means the server and client agree on the wire.
+ */
+export type ServerEvent =
+  | { type: "mode"; mode: "live" | "demo" }
+  | { type: "status"; status: JarvisStatus }
+  | { type: "tool"; id?: string; name: string; label: string; phase: "start" | "end" }
+  | { type: "text"; delta: string }
+  | { type: "ui"; focus?: WidgetKey | null; highlight?: string[] }
+  | { type: "error"; message: string }
+  | { type: "done" };
+
+/** One turn of the conversation, kept in the store for context + display. */
+export interface ChatTurn {
+  role: "user" | "assistant";
+  text: string;
+}
+
+/** A tool invocation surfaced in the HUD while Claude works. */
+export interface ToolActivity {
+  id: string;
+  label: string;
+  status: "running" | "done";
+}

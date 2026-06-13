@@ -7,6 +7,7 @@ import { ParticleField } from "./ParticleField";
 import { StatusBar } from "./StatusBar";
 import { CentralCore } from "./CentralCore";
 import { CommandBar } from "./CommandBar";
+import { ResponsePanel } from "./ResponsePanel";
 import { BootSequence } from "./BootSequence";
 import { CalendarWidget } from "@/components/widgets/CalendarWidget";
 import { TasksWidget } from "@/components/widgets/TasksWidget";
@@ -45,6 +46,7 @@ export function Dashboard() {
             <div className="flex flex-1 items-center justify-center py-2">
               <CentralCore />
             </div>
+            <ResponsePanel />
             <CommandBar />
           </div>
 
