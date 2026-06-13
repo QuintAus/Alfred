@@ -6,13 +6,13 @@ commands, and uses **Claude (the Anthropic API) as its brain** — Claude
 interprets what you say, decides which of your connected apps to pull data from,
 responds in natural language, and drives what the dashboard displays.
 
-> **Status: Phase 3 complete** — JARVIS now connects to your **Google account**
-> (Calendar, Gmail, Drive, Tasks) over OAuth 2.0 and renders your *real* data in
-> the HUD. Read-only everywhere except creating calendar events. Tokens are
-> encrypted at rest and never leave the server.
+> **Status: Phase 4 complete** — JARVIS now has a **voice**: speak commands
+> (push-to-talk or the "Hey JARVIS" wake word), hear spoken replies, and watch the
+> visualizer ring react to your live microphone. Built on Phases 1–3 (the animated
+> HUD, the Claude brain, and real Google data).
 >
-> Degrades gracefully: with no Anthropic key it runs in **demo mode**; with no
-> Google connection the widgets show **mock data**. Connect things to light it up.
+> Degrades gracefully at every layer: no Anthropic key → **demo mode**; no Google
+> → **mock data**; no mic/voice support → the **text command bar** still works.
 
 ---
 
@@ -27,10 +27,11 @@ responds in natural language, and drives what the dashboard displays.
 | Styling        | Tailwind CSS v4 (`@theme` tokens)                   |
 | Animation      | Motion (Framer Motion) + Canvas 2D                  |
 | State          | Zustand                                             |
+| Voice          | Web Speech API (STT/TTS) · Picovoice Porcupine (wake word) |
 | Fonts          | Orbitron · Rajdhani · JetBrains Mono (next/font)    |
 
-Later phases add: Web Speech API + Picovoice Porcupine (voice + wake word),
-Spotify, monday.com.
+Later phases add: Spotify, monday.com, real web search / weather; ElevenLabs /
+Deepgram voice upgrades.
 
 ---
 
@@ -97,6 +98,32 @@ disconnect + reconnect to re-consent).
 
 ---
 
+## Voice (Phase 4)
+
+Click the **speaker** toggle in the command bar to enable spoken replies (and the
+wake word). Then:
+
+- **Push-to-talk:** click the **mic** and speak — your words become a command and
+  JARVIS replies out loud. The visualizer ring reacts to your live mic level.
+- **"Hey JARVIS" wake word** (optional): say it to start listening hands-free.
+  Needs a free Picovoice key (below). Without it, push-to-talk still works.
+- The text command bar is always there as a fallback.
+
+STT/TTS use the browser-native Web Speech API (best in Chrome); the app prefers an
+`en-GB` system voice for the butler tone.
+
+### "Hey JARVIS" wake word (optional)
+
+1. Get a free **AccessKey** from the [Picovoice Console](https://console.picovoice.ai/).
+2. Download the English params model **`porcupine_params.pv`** from the
+   [Porcupine repo](https://github.com/Picovoice/porcupine/tree/master/lib/common)
+   and drop it in **`public/`**.
+3. Set `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` in `.env.local` and restart.
+4. Enable voice (speaker toggle) — JARVIS wakes to "Jarvis" (a Porcupine built-in
+   keyword, so no model training needed).
+
+---
+
 ## How it works
 
 ```
@@ -132,6 +159,7 @@ src/
 ├─ components/hud/
 │  ├─ CentralCore · VoiceVisualizer · ArcReactor · BootSequence …
 │  ├─ CommandBar · ResponsePanel     # command input + live exchange
+│  ├─ VoiceProvider.tsx              # STT/TTS, live mic amplitude, wake word
 │  └─ GoogleConnect.tsx              # connect/disconnect control
 ├─ components/widgets/               # Calendar, Inbox, Tasks, Weather, NowPlaying, Stats
 └─ lib/
@@ -162,8 +190,8 @@ src/
 - **Phase 2 — Claude brain (done):** SSE orchestration loop, tools, persona.
 - **Phase 3 — Google integration (done):** OAuth 2.0, encrypted tokens, real
   Calendar/Gmail/Drive/Tasks, calendar event creation, mock fallback.
-- **Phase 4 — Voice:** speech-to-text, TTS, "Hey JARVIS" wake word (Porcupine),
-  visualizer hooked to live mic/TTS amplitude, push-to-talk fallback.
+- **Phase 4 — Voice (done):** speech-to-text + TTS (Web Speech API), "Hey JARVIS"
+  wake word (Porcupine), visualizer hooked to live mic amplitude, push-to-talk.
 - **Phase 5 — Polish & expand:** Spotify, monday.com, real web search/weather;
   ElevenLabs / Deepgram upgrade hooks.
 

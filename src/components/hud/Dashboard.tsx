@@ -8,6 +8,7 @@ import { StatusBar } from "./StatusBar";
 import { CentralCore } from "./CentralCore";
 import { CommandBar } from "./CommandBar";
 import { ResponsePanel } from "./ResponsePanel";
+import { VoiceProvider } from "./VoiceProvider";
 import { BootSequence } from "./BootSequence";
 import { CalendarWidget } from "@/components/widgets/CalendarWidget";
 import { TasksWidget } from "@/components/widgets/TasksWidget";
@@ -26,7 +27,7 @@ export function Dashboard() {
   const setBooted = useJarvis((s) => s.setBooted);
 
   return (
-    <>
+    <VoiceProvider>
       <ParticleField />
       <HudFrame />
 
@@ -69,6 +70,6 @@ export function Dashboard() {
       <AnimatePresence>
         {!booted && <BootSequence key="boot" onComplete={() => setBooted(true)} />}
       </AnimatePresence>
-    </>
+    </VoiceProvider>
   );
 }

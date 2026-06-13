@@ -7,7 +7,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 # JARVIS dashboard — project notes
 
 A JARVIS-style HUD that uses Claude (Anthropic API) as the brain. Built in
-phases (see README "Roadmap"). **Phases 1, 2, and 3 (Google integration) are done.**
+phases (see README "Roadmap"). **Phases 1–4 are done (HUD, Claude brain, Google,
+voice).**
 
 Key conventions:
 
@@ -29,6 +30,12 @@ Key conventions:
   NOTE: `googleapis` pulls two `google-auth-library` versions → an OAuth2Client
   type clash; resolved via `overrides.google-auth-library` in package.json (keep
   it). Type the auth client as `Auth.OAuth2Client` from `googleapis`.
+- **Voice (Phase 4):** `src/components/hud/VoiceProvider.tsx` owns STT + TTS
+  (Web Speech API), live mic amplitude → store `inputLevel`, and the Porcupine
+  wake word. Wake word is opt-in (`NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` +
+  `porcupine_params.pv` in `public/`); push-to-talk + text always work. Picovoice
+  modules are dynamically imported (browser/WASM only) and typed `any` to keep the
+  build green. All browser APIs live in effects/handlers (SSR-safe).
 - **Claude usage:** model `claude-opus-4-8`, adaptive thinking, NO
   `temperature`/`budget_tokens`/prefill (they 400). Before touching Anthropic
   code, consult the `claude-api` skill — don't code SDK usage from memory.
